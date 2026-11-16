@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased min-h-screen;
+  }
+}
