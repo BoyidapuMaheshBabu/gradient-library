@@ -4,11 +4,28 @@ interface GradientCardProps {
     name: string
     cssVariable: string
   }
+  isSelected: boolean
+  onSelect: () => void
 }
 
-export default function GradientCard({ gradient }: GradientCardProps) {
+export default function GradientCard({ gradient, isSelected, onSelect }: GradientCardProps) {
   return (
-    <article className="group rounded-2xl overflow-hidden border border-white/10 bg-slate-900 transition-transform duration-300 hover:scale-[1.02]">
+    <article
+      className={`rounded-2xl overflow-hidden border border-white/10 bg-slate-900 transition-transform duration-300 hover:scale-[1.02] ${
+        isSelected ? 'ring-2 ring-amber-400 border-amber-400' : 'hover:border-white/20'
+      }`}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
+      aria-label={`Select ${gradient.name}`}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelect()
+        }
+      }}
+    >
       <div
         className="aspect-video bg-gradient-to-br from-transparent to-transparent"
         style={{
