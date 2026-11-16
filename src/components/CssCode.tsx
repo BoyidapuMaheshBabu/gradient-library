@@ -8,6 +8,11 @@ export default function CssCode({ css }: CssCodeProps) {
   const [copied, setCopied] = React.useState(false)
   const [error, setError] = React.useState(false)
 
+  React.useEffect(() => {
+    setCopied(false)
+    setError(false)
+  }, [css])
+
   async function handleCopy() {
     if (!css) return
 
