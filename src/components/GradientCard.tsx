@@ -10,21 +10,12 @@ interface GradientCardProps {
 
 export default function GradientCard({ gradient, isSelected, onSelect }: GradientCardProps) {
   return (
-    <article
-      className={`rounded-2xl overflow-hidden border border-white/10 bg-slate-900 transition-transform duration-300 hover:scale-[1.02] ${
+    <button
+      className={`rounded-2xl overflow-hidden border border-white/10 bg-slate-900 transition-transform duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
         isSelected ? 'ring-2 ring-amber-400 border-amber-400' : 'hover:border-white/20'
       }`}
-      role="button"
-      tabIndex={0}
-      aria-pressed={isSelected}
-      aria-label={`Select ${gradient.name}`}
       onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onSelect()
-        }
-      }}
+      aria-pressed={isSelected}
     >
       <div
         className="aspect-video bg-gradient-to-br from-transparent to-transparent"
@@ -35,6 +26,6 @@ export default function GradientCard({ gradient, isSelected, onSelect }: Gradien
       <div className="px-6 py-4">
         <h3 className="text-lg font-medium text-slate-100">{gradient.name}</h3>
       </div>
-    </article>
+    </button>
   )
 }

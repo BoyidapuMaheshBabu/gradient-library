@@ -8,7 +8,7 @@ interface GalleryProps {
 
 export default function Gallery({ selectedGradientId, onSelect }: GalleryProps) {
   return (
-    <section className="py-16 px-6 max-w-6xl mx-auto">
+    <section>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {gradients.map((gradient) => (
           <GradientCard

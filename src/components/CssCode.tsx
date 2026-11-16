@@ -6,21 +6,29 @@ interface CssCodeProps {
 
 export default function CssCode({ css }: CssCodeProps) {
   const [copied, setCopied] = React.useState(false)
+  const [error, setError] = React.useState(false)
 
   async function handleCopy() {
     if (!css) return
 
+    setCopied(false)
+    setError(false)
+
     try {
       await navigator.clipboard.writeText(`background: ${css};`)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     } catch {
-      setCopied(false)
+      setError(true)
     }
+
+    setTimeout(() => {
+      setCopied(false)
+      setError(false)
+    }, 2000)
   }
 
   return (
-    <section className="py-16 px-6 max-w-6xl mx-auto">
+    <section>
       <div className="bg-slate-900 rounded-2xl border border-white/10 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-slate-300 uppercase tracking-wider">
@@ -29,16 +37,25 @@ export default function CssCode({ css }: CssCodeProps) {
           <button
             onClick={handleCopy}
             disabled={!css}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
               copied
                 ? 'bg-amber-500 text-white'
-                : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10'
+                : error
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
+                  : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10'
             }`}
-            aria-label={copied ? 'CSS copied to clipboard' : 'Copy CSS to clipboard'}
+            aria-label={copied ? 'CSS copied to clipboard' : error ? 'Failed to copy CSS' : 'Copy CSS to clipboard'}
           >
-            {copied ? 'Copied!' : 'Copy CSS'}
+            {copied ? 'Copied!' : error ? 'Failed' : 'Copy CSS'}
           </button>
         </div>
+
+        <span
+          aria-live="polite"
+          className="sr-only"
+        >
+          {copied ? 'CSS copied to clipboard' : error ? 'Failed to copy CSS' : ''}
+        </span>
 
         {!css ? (
           <p className="text-slate-500 text-sm italic">
