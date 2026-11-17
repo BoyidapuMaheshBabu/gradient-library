@@ -11,21 +11,34 @@ interface GradientCardProps {
 export default function GradientCard({ gradient, isSelected, onSelect }: GradientCardProps) {
   return (
     <button
-      className={`rounded-2xl overflow-hidden border border-white/10 bg-slate-900 transition-transform duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
-        isSelected ? 'ring-2 ring-amber-400 border-amber-400' : 'hover:border-white/20'
+      type="button"
+      className={`group w-full overflow-hidden rounded-[18px] border bg-[var(--surface)] text-left transition duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:shadow-[0_14px_34px_oklch(0.04_0.01_145/0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--canvas)] ${
+        isSelected
+          ? 'border-[var(--accent)]/75 ring-1 ring-[var(--accent)]/35'
+          : 'border-white/10'
       }`}
       onClick={onSelect}
       aria-pressed={isSelected}
     >
-      <div
-        className="aspect-video bg-gradient-to-br from-transparent to-transparent"
-        style={{
-          background: gradient.cssVariable,
-        }}
+      <span
+        className="block aspect-[16/10] overflow-hidden"
+        style={{ background: gradient.cssVariable }}
       />
-      <div className="px-6 py-4">
-        <h3 className="text-lg font-medium text-slate-100">{gradient.name}</h3>
-      </div>
+      <span className="flex min-h-[62px] items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
+        <span className="text-sm font-medium tracking-[-0.015em] text-[var(--ink)]">
+          {gradient.name}
+        </span>
+        {isSelected ? (
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
+            <span className="size-1.5 rounded-full bg-[var(--accent)]" />
+            Selected
+          </span>
+        ) : (
+          <span className="text-xs text-[var(--ink-subtle)] transition-colors group-hover:text-[var(--ink-muted)]">
+            Preview →
+          </span>
+        )}
+      </span>
     </button>
   )
 }

@@ -10,39 +10,48 @@ interface PreviewProps {
 export default function Preview({ gradient, onBack }: PreviewProps) {
   return (
     <section
-      className={`relative min-h-[400px] rounded-3xl overflow-hidden border border-white/10 transition-colors duration-300 flex items-center justify-center text-slate-100 ${
-        gradient ? `bg-gradient-to-br` : 'bg-slate-900'
-      }`}
+      aria-label="Gradient preview"
+      className="relative isolate flex min-h-[310px] overflow-hidden rounded-[26px] border border-white/15 bg-[var(--surface)] text-white shadow-[0_28px_80px_oklch(0.04_0.01_145/0.34)] sm:min-h-[390px] lg:min-h-[440px]"
       style={{
-        background: gradient ? gradient.cssVariable : undefined,
+        background: gradient ? gradient.cssVariable : 'var(--surface)',
       }}
     >
-      {gradient && (
-        <button
-          onClick={onBack}
-          className="absolute top-6 left-6 z-10 flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10 text-white hover:bg-white/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-          aria-label="Return to gallery"
-        >
-          <span className="text-sm">← Back to gallery</span>
-        </button>
-      )}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-black/10"
+      />
+      <div className="relative z-10 flex w-full flex-col justify-between p-5 sm:p-8 lg:p-10">
+        <div className="flex items-start justify-between gap-4">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-1.5 text-[11px] font-medium tracking-[0.08em] text-white/85 backdrop-blur-sm">
+            <span className="size-1.5 rounded-full bg-[var(--accent)]" />
+            LIVE PREVIEW
+          </span>
+          {gradient && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="rounded-full border border-white/25 bg-black/20 px-4 py-2 text-xs font-medium text-white/90 backdrop-blur-sm transition-colors hover:border-white/50 hover:bg-black/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              aria-label="Return to gallery"
+            >
+              ← <span className="ml-1">Gallery</span>
+            </button>
+          )}
+        </div>
 
-      {gradient ? (
-        <div className="z-10 px-8 py-10 text-center">
-          <h2 className="text-4xl md:text-6xl font-semibold tracking-tight mb-2">
-            {gradient.name}
+        <div className="max-w-2xl">
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-white/75">
+            {gradient ? 'Selected gradient' : 'Choose a color direction'}
+          </p>
+          <h2 className="text-4xl font-semibold leading-[1.04] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
+            {gradient ? gradient.name : 'Find your next gradient.'}
           </h2>
-          <p className="text-sm text-slate-300 tracking-widest uppercase">
-            Selected gradient preview
+          <p className="mt-3 max-w-lg text-sm leading-6 text-white/80 sm:text-base">
+            {gradient
+              ? 'A closer look at the colors, ready for your next interface.'
+              : 'Select any gradient from the collection to see it in full.'}
           </p>
         </div>
-      ) : (
-        <div className="z-10 px-8 py-10 text-center">
-          <h2 className="text-2xl md:text-3xl font-medium text-slate-400">
-            Select a gradient to preview
-          </h2>
-        </div>
-      )}
+      </div>
     </section>
   )
 }

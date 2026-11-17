@@ -10,23 +10,23 @@ export default function App() {
   const [selectedGradientId, setSelectedGradientId] = useState<string | null>(gradients[0]?.id ?? null)
 
   const selectedGradient =
-    gradients.find((g) => g.id === selectedGradientId) ?? null
+    gradients.find((gradient) => gradient.id === selectedGradientId) ?? null
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div id="top" className="min-h-screen">
       <Header />
-      <main className="pt-20">
-        <Preview gradient={selectedGradient} onBack={() => setSelectedGradientId(null)} />
+      <main className="mx-auto max-w-[1440px] px-5 pb-16 pt-28 sm:px-8 lg:px-12">
+        <Preview
+          gradient={selectedGradient}
+          onBack={() => setSelectedGradientId(null)}
+        />
 
-        <section className="py-16 px-6 max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-            <div className="md:col-span-5">
-              <CssCode css={selectedGradient?.css ?? null} />
-            </div>
-            <div className="md:col-span-7">
-              <Gallery selectedGradientId={selectedGradientId} onSelect={setSelectedGradientId} />
-            </div>
-          </div>
+        <section className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.5fr)] lg:gap-8">
+          <CssCode css={selectedGradient?.css ?? null} />
+          <Gallery
+            selectedGradientId={selectedGradientId}
+            onSelect={setSelectedGradientId}
+          />
         </section>
       </main>
       <Footer />
