@@ -21,11 +21,7 @@ export default function Preview({ gradient, onBack }: PreviewProps) {
         className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-black/10"
       />
       <div className="relative z-10 flex w-full flex-col justify-between p-5 sm:p-8 lg:p-10">
-        <div className="flex items-start justify-between gap-4">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-1.5 text-[11px] font-medium tracking-[0.08em] text-white/85 backdrop-blur-sm">
-            <span className="size-1.5 rounded-full bg-[var(--accent)]" />
-            LIVE PREVIEW
-          </span>
+        <div className="flex items-start justify-end">
           {gradient && (
             <button
               type="button"
@@ -39,13 +35,10 @@ export default function Preview({ gradient, onBack }: PreviewProps) {
         </div>
 
         <div className="max-w-2xl">
-          <p className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-white/75">
-            {gradient ? 'Selected gradient' : 'Choose a color direction'}
-          </p>
           <h2 className="text-4xl font-semibold leading-[1.04] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
             {gradient ? gradient.name : 'Find your next gradient.'}
           </h2>
-          <p className="mt-3 max-w-lg text-sm leading-6 text-white/80 sm:text-base">
+          <p className="mt-3 max-w-lg text-sm leading-6 text-white/85 sm:text-base">
             {gradient
               ? 'A closer look at the colors, ready for your next interface.'
               : 'Select any gradient from the collection to see it in full.'}

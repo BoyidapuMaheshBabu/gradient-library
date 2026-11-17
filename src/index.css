@@ -5,7 +5,6 @@
     color-scheme: dark;
     --canvas: oklch(0.135 0.018 150);
     --surface: oklch(0.185 0.022 150);
-    --surface-raised: oklch(0.215 0.025 150);
     --surface-code: oklch(0.115 0.016 150);
     --line: oklch(0.34 0.025 150 / 0.58);
     --ink: oklch(0.94 0.012 105);
