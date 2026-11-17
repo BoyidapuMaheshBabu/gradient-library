@@ -6,7 +6,7 @@ Build the first working website with 1–2 gradients. Establish the initial page
 ## Phase 02 — Gradient Experience
 Add gradient selection, a focused preview, and CSS copying.
 
-## Phase 03 — Quality & Refinement
-Test the website across screen sizes, fix interaction and visual issues, and polish the experience.
+## Phase 03 — Gradient Editor
+Build the gradient editing workspace: customize colors and direction with live preview.
 
 **Working rule:** Develop one phase at a time. The owner reviews and accepts each phase before moving to the next. Each new phase starts from the latest accepted `main`.
