@@ -1,34 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-
-interface GradientData {
-  id: string
-  name: string
-  cssVariable: string
-  css: string
-}
+import { generateGradientCss, type Gradient } from '../data/gradients'
 
 interface EditorEntryProps {
-  gradient: GradientData | null
+  gradient: Gradient | null
   onBack: () => void
 }
 
 const HEX_REGEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 
-function parseGradientCss(css: string) {
-  const match = css.match(
-    /linear-gradient\((\d+(?:\.\d+)?)deg,\s*(#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})),\s*(#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}))/
-  )
-  if (!match) return null
-  return {
-    angle: Number(match[1]),
-    color1: match[2],
-    color2: match[4],
-  }
-}
-
 export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
-  const [viewError, setViewError] = useState<string | null>(null)
-
   const [color1, setColor1] = useState<string>('')
   const [color2, setColor2] = useState<string>('')
   const [angle, setAngle] = useState<number>(0)
@@ -41,26 +21,24 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
   const [color2Invalid, setColor2Invalid] = useState(false)
   const [angleInvalid, setAngleInvalid] = useState(false)
 
-  const original = useMemo(() => (gradient ? parseGradientCss(gradient.css) : null), [gradient])
+  const original = useMemo(
+    () => (gradient ? { color1: gradient.colors[0], color2: gradient.colors[1], angle: gradient.angle } : null),
+    [gradient]
+  )
 
   useEffect(() => {
-    if (!gradient) return
-    const parsed = parseGradientCss(gradient.css)
-    if (!parsed) {
-      setViewError('Unable to load gradient values.')
-      return
-    }
-    setViewError(null)
-    setColor1(parsed.color1)
-    setColor2(parsed.color2)
-    setAngle(parsed.angle)
-    setColor1Input(parsed.color1)
-    setColor2Input(parsed.color2)
-    setAngleInput(String(parsed.angle))
+    if (!gradient || !original) return
+
+    setColor1(gradient.colors[0])
+    setColor2(gradient.colors[1])
+    setAngle(gradient.angle)
+    setColor1Input(gradient.colors[0])
+    setColor2Input(gradient.colors[1])
+    setAngleInput(String(gradient.angle))
     setColor1Invalid(false)
     setColor2Invalid(false)
     setAngleInvalid(false)
-  }, [gradient])
+  }, [gradient, original])
 
   const handleColor1Change = useCallback(
     (value: string) => {
@@ -98,6 +76,7 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
 
   const handleReset = useCallback(() => {
     if (!original) return
+
     setColor1(original.color1)
     setColor2(original.color2)
     setAngle(original.angle)
@@ -110,8 +89,8 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
   }, [original])
 
   const editedCss = useMemo(
-    () => `linear-gradient(${angle}deg, ${color1} 0%, ${color2} 100%)`,
-    [angle, color1, color2]
+    () => generateGradientCss({ ...gradient!, colors: [color1, color2], angle }),
+    [gradient, color1, color2, angle]
   )
 
   if (!gradient) {
@@ -120,24 +99,6 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
         <div className="text-center py-20">
           <h3 className="text-lg font-medium text-[var(--ink)]">No gradient selected</h3>
           <p className="mt-2 text-[var(--ink-muted)]">Please select a gradient from the gallery.</p>
-        </div>
-      </section>
-    )
-  }
-
-  if (viewError) {
-    return (
-      <section className="min-w-0">
-        <div className="text-center py-20">
-          <h3 className="text-lg font-medium text-[var(--ink)]">{gradient.name}</h3>
-          <p className="mt-2 text-[var(--ink-subtle)]">{viewError}</p>
-          <button
-            type="button"
-            onClick={onBack}
-            className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-4 py-2 text-xs font-medium text-white/90 backdrop-blur-sm transition-colors hover:border-white/50 hover:bg-black/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          >
-            ← <span className="ml-1">Back to gallery</span>
-          </button>
         </div>
       </section>
     )
@@ -208,7 +169,7 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
                   value={color1Input}
                   onChange={(e) => handleColor1Change(e.target.value)}
                   className="flex-1 rounded-lg border border-white/10 bg-[var(--surface-code)] px-3 py-2 text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40"
-                  placeholder="#667eea"
+                  placeholder="#C7CEBE"
                   maxLength={7}
                   aria-invalid={color1Invalid}
                   aria-label="First color HEX value"
@@ -240,7 +201,7 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
                   value={color2Input}
                   onChange={(e) => handleColor2Change(e.target.value)}
                   className="flex-1 rounded-lg border border-white/10 bg-[var(--surface-code)] px-3 py-2 text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40"
-                  placeholder="#764ba2"
+                  placeholder="#8AA394"
                   maxLength={7}
                   aria-invalid={color2Invalid}
                   aria-label="Second color HEX value"

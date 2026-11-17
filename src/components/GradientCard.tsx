@@ -1,9 +1,7 @@
+import { generateGradientCss, type Gradient } from '../data/gradients'
+
 interface GradientCardProps {
-  gradient: {
-    id: string
-    name: string
-    cssVariable: string
-  }
+  gradient: Gradient
   isSelected: boolean
   onSelect: () => void
 }
@@ -22,7 +20,7 @@ export default function GradientCard({ gradient, isSelected, onSelect }: Gradien
     >
       <span
         className="block aspect-[16/10] overflow-hidden"
-        style={{ background: gradient.cssVariable }}
+        style={{ background: generateGradientCss(gradient) }}
       />
       <span className="flex min-h-[62px] items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
         <span className="text-sm font-medium tracking-[-0.015em] text-[var(--ink)]">

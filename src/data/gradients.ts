@@ -1,39 +1,37 @@
 export interface Gradient {
   id: string
   name: string
-  cssVariable: string
-  css: string
+  angle: number
+  colors: [string, string]
+}
+
+export function generateGradientCss(gradient: Gradient): string {
+  return `linear-gradient(${gradient.angle}deg, ${gradient.colors[0]} 0%, ${gradient.colors[1]} 100%)`
 }
 
 export const gradients: Gradient[] = [
   {
-    id: 'aurora-dusk',
-    name: 'Aurora Dusk',
-    cssVariable: 'var(--gradient-1)',
-    css: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    id: 'sage-mist',
+    name: 'Sage Mist',
+    angle: 135,
+    colors: ['#C7CEBE', '#8AA394'],
   },
   {
-    id: 'graphite-neon',
-    name: 'Graphite Neon',
-    cssVariable: 'var(--gradient-2)',
-    css: 'linear-gradient(135deg, #2d2d2d 0%, #39ff14 100%)',
+    id: 'forest-glow',
+    name: 'Forest Glow',
+    angle: 135,
+    colors: ['#1B4332', '#2D6A4F'],
   },
   {
-    id: 'sienna-glow',
-    name: 'Sienna Glow',
-    cssVariable: 'var(--gradient-3)',
-    css: 'linear-gradient(135deg, #8b4513 0%, #d2691e 100%)',
+    id: 'warm-clay',
+    name: 'Warm Clay',
+    angle: 135,
+    colors: ['#E07A5F', '#8B4513'],
   },
   {
-    id: 'deep-forest',
-    name: 'Deep Forest',
-    cssVariable: 'var(--gradient-4)',
-    css: 'linear-gradient(135deg, #0f4c32 0%, #1a8a58 100%)',
-  },
-  {
-    id: 'midnight-amber',
-    name: 'Midnight Amber',
-    cssVariable: 'var(--gradient-5)',
-    css: 'linear-gradient(135deg, #0a0a23 0%, #f5a623 100%)',
+    id: 'coastal-slate',
+    name: 'Coastal Slate',
+    angle: 135,
+    colors: ['#7F8C8D', '#2C3E50'],
   },
 ]

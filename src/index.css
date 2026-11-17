@@ -14,11 +14,6 @@
     --accent-ink: oklch(0.19 0.035 145);
     --danger: oklch(0.72 0.18 25);
 
-    --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-2: linear-gradient(135deg, #2d2d2d 0%, #39ff14 100%);
-    --gradient-3: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
-    --gradient-4: linear-gradient(135deg, #0f4c32 0%, #1a8a58 100%);
-    --gradient-5: linear-gradient(135deg, #0a0a23 0%, #f5a623 100%);
   }
 
   * {
