@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { generateGradientCss, type Gradient } from '../data/gradients'
+import ExportSection from './ExportSection'
 
 interface EditorEntryProps {
   gradient: Gradient | null
@@ -269,6 +270,14 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
           </div>
         </section>
       </div>
+
+      <ExportSection
+        gradientName={gradient.name}
+        color1={color1}
+        color2={color2}
+        angle={angle}
+        css={editedCss}
+      />
     </section>
   )
 }
