@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { generateGradientCss, type Gradient } from '../data/gradients'
+import type {
+  GradientComposition,
+  LinearGradientDefinition,
+} from '../data/gradient'
+import { isSimpleComposition } from '../data/gradient'
+import { generateSimpleCss } from '../utils/gradient-css'
+import GradientCompositionRenderer from './GradientCompositionRenderer'
 import ExportSection from './ExportSection'
 
 interface EditorEntryProps {
-  gradient: Gradient | null
+  gradient: GradientComposition | null
   onBack: () => void
 }
 
@@ -22,24 +28,23 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
   const [color2Invalid, setColor2Invalid] = useState(false)
   const [angleInvalid, setAngleInvalid] = useState(false)
 
-  const original = useMemo(
-    () => (gradient ? { color1: gradient.colors[0], color2: gradient.colors[1], angle: gradient.angle } : null),
-    [gradient]
-  )
+  const simple = useMemo(() => (gradient ? isSimpleComposition(gradient) : false), [gradient])
+  const original = useMemo(() => gradient, [gradient])
 
   useEffect(() => {
-    if (!gradient || !original) return
+    if (!gradient || !simple) return
 
-    setColor1(gradient.colors[0])
-    setColor2(gradient.colors[1])
-    setAngle(gradient.angle)
-    setColor1Input(gradient.colors[0])
-    setColor2Input(gradient.colors[1])
-    setAngleInput(String(gradient.angle))
+    const definition = gradient.layers[0].definition as LinearGradientDefinition
+    setColor1(definition.stops[0].color)
+    setColor2(definition.stops[1].color)
+    setAngle(definition.angle)
+    setColor1Input(definition.stops[0].color)
+    setColor2Input(definition.stops[1].color)
+    setAngleInput(String(definition.angle))
     setColor1Invalid(false)
     setColor2Invalid(false)
     setAngleInvalid(false)
-  }, [gradient, original])
+  }, [gradient, simple])
 
   const handleColor1Change = useCallback(
     (value: string) => {
@@ -76,23 +81,50 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
   )
 
   const handleReset = useCallback(() => {
-    if (!original) return
+    if (!original || !simple) return
 
-    setColor1(original.color1)
-    setColor2(original.color2)
-    setAngle(original.angle)
-    setColor1Input(original.color1)
-    setColor2Input(original.color2)
-    setAngleInput(String(original.angle))
+    const definition = original.layers[0].definition as LinearGradientDefinition
+    setColor1(definition.stops[0].color)
+    setColor2(definition.stops[1].color)
+    setAngle(definition.angle)
+    setColor1Input(definition.stops[0].color)
+    setColor2Input(definition.stops[1].color)
+    setAngleInput(String(definition.angle))
     setColor1Invalid(false)
     setColor2Invalid(false)
     setAngleInvalid(false)
-  }, [original])
+  }, [original, simple])
 
-  const editedCss = useMemo(
-    () => generateGradientCss({ ...gradient!, colors: [color1, color2], angle }),
-    [gradient, color1, color2, angle]
-  )
+  /**
+   * Applies the current two-colour and angle edits to a copy of the selected
+   * composition. Only valid for simple compositions; layered presets are
+   * rendered read-only until Phase 06.
+   */
+  const edited = useMemo(() => {
+    if (!gradient || !simple) return null
+
+    const layer = gradient.layers[0]
+    const definition = layer.definition as LinearGradientDefinition
+
+    return {
+      ...gradient,
+      layers: [
+        {
+          ...layer,
+          definition: {
+            ...definition,
+            angle,
+            stops: [
+              { ...definition.stops[0], color: color1 },
+              { ...definition.stops[1], color: color2 },
+            ],
+          },
+        },
+      ],
+    }
+  }, [gradient, simple, color1, color2, angle])
+
+  const editedCss = useMemo(() => (edited ? generateSimpleCss(edited) : null), [edited])
 
   if (!gradient) {
     return (
@@ -104,6 +136,8 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
       </section>
     )
   }
+
+  const isLayered = !simple
 
   return (
     <section className="min-w-0">
@@ -119,12 +153,23 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
         </button>
       </div>
 
+      {isLayered && (
+        <div className="mb-6 rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-sm text-[var(--ink-muted)]">
+          Layered gradient preset — rendered with the shared layered renderer.
+          <br />
+          Full layer customisation and export arrive in Phase 06.
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Gradient preview panel */}
         <section
           className="relative isolate overflow-hidden rounded-[26px] border border-white/15 bg-[var(--surface)] text-white shadow-[0_28px_80px_oklch(0.04_0.01_145/0.34)] lg:min-h-[440px]"
-          style={{ background: editedCss }}
         >
+          <GradientCompositionRenderer
+            composition={edited ?? gradient}
+            className="w-full h-full"
+          />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-black/10"
@@ -139,7 +184,9 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
               {gradient.name}
             </h2>
             <p className="mt-3 max-w-lg text-sm leading-6 text-white/85">
-              Customize colors and direction. Changes update the preview immediately.
+              {isLayered
+                ? 'Read-only preview of the layered preset. Layer editing arrives in Phase 06.'
+                : 'Customize colors and direction. Changes update the preview immediately.'}
             </p>
           </div>
         </section>
@@ -149,124 +196,133 @@ export default function EditorEntry({ gradient, onBack }: EditorEntryProps) {
           <div className="flex-1 overflow-y-auto">
             <h3 className="section-title mb-6">Editor controls</h3>
 
-            {/* First color */}
-            <div className="mb-6">
-              <label className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[var(--ink)]">First color</span>
-                <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-                  Color 1
-                </span>
-              </label>
-              <div className="flex items-end gap-3">
-                <input
-                  type="color"
-                  value={color1}
-                  onChange={(e) => handleColor1Change(e.target.value)}
-                  className="h-10 w-12 rounded-lg border-0 bg-transparent cursor-pointer"
-                  aria-label="First color picker"
-                />
-                <input
-                  type="text"
-                  value={color1Input}
-                  onChange={(e) => handleColor1Change(e.target.value)}
-                  className="flex-1 rounded-lg border border-white/10 bg-[var(--surface-code)] px-3 py-2 text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40"
-                  placeholder="#C7CEBE"
-                  maxLength={7}
-                  aria-invalid={color1Invalid}
-                  aria-label="First color HEX value"
-                />
-                {color1Invalid && (
-                  <span className="text-[10px] font-medium text-[var(--danger)]">Invalid HEX</span>
-                )}
+            {isLayered ? (
+              <div className="rounded-lg border border-white/10 bg-black/20 p-4 text-sm text-[var(--ink-muted)]">
+                Colour, direction and layer controls for layered presets arrive
+                in Phase 06. This preset renders as designed.
               </div>
-            </div>
-
-            {/* Second color */}
-            <div className="mb-6">
-              <label className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[var(--ink)]">Second color</span>
-                <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-                  Color 2
-                </span>
-              </label>
-              <div className="flex items-end gap-3">
-                <input
-                  type="color"
-                  value={color2}
-                  onChange={(e) => handleColor2Change(e.target.value)}
-                  className="h-10 w-12 rounded-lg border-0 bg-transparent cursor-pointer"
-                  aria-label="Second color picker"
-                />
-                <input
-                  type="text"
-                  value={color2Input}
-                  onChange={(e) => handleColor2Change(e.target.value)}
-                  className="flex-1 rounded-lg border border-white/10 bg-[var(--surface-code)] px-3 py-2 text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40"
-                  placeholder="#8AA394"
-                  maxLength={7}
-                  aria-invalid={color2Invalid}
-                  aria-label="Second color HEX value"
-                />
-                {color2Invalid && (
-                  <span className="text-[10px] font-medium text-[var(--danger)]">Invalid HEX</span>
-                )}
-              </div>
-            </div>
-
-            {/* Gradient direction */}
-            <div className="mb-6">
-              <label className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[var(--ink)]">Gradient direction</span>
-                <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
-                  Angle
-                </span>
-              </label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min="0"
-                  max="360"
-                  step="1"
-                  value={angle}
-                  onChange={(e) => {
-                    const val = Number(e.target.value)
-                    setAngle(val)
-                    setAngleInput(String(val))
-                    setAngleInvalid(false)
-                  }}
-                  className="flex-1 accent-[var(--accent)] h-2 w-full rounded-lg bg-white/10 appearance-none cursor-pointer"
-                  aria-label="Gradient direction angle"
-                />
-                <div className="flex items-end gap-3">
-                  <input
-                    type="text"
-                    value={angleInput}
-                    onChange={(e) => handleAngleChange(e.target.value)}
-                    className="rounded-lg border border-white/10 bg-[var(--surface-code)] px-3 py-2 text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40 w-[80px]"
-                    placeholder="135"
-                    maxLength={3}
-                    aria-invalid={angleInvalid}
-                    aria-label="Gradient direction value"
-                  />
-                  <span className="text-[10px] font-medium text-[var(--ink-muted)]">deg</span>
-                  {angleInvalid && (
-                    <span className="text-[10px] font-medium text-[var(--danger)]">Invalid angle</span>
-                  )}
+            ) : (
+              <>
+                {/* First color */}
+                <div className="mb-6">
+                  <label className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-[var(--ink)]">First color</span>
+                    <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                      Color 1
+                    </span>
+                  </label>
+                  <div className="flex items-end gap-3">
+                    <input
+                      type="color"
+                      value={color1}
+                      onChange={(e) => handleColor1Change(e.target.value)}
+                      className="h-10 w-12 rounded-lg border-0 bg-transparent cursor-pointer"
+                      aria-label="First color picker"
+                    />
+                    <input
+                      type="text"
+                      value={color1Input}
+                      onChange={(e) => handleColor1Change(e.target.value)}
+                      className="flex-1 rounded-lg border border-white/10 bg-[var(--surface-code)] px-3 py-2 text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40"
+                      placeholder="#C7CEBE"
+                      maxLength={7}
+                      aria-invalid={color1Invalid}
+                      aria-label="First color HEX value"
+                    />
+                    {color1Invalid && (
+                      <span className="text-[10px] font-medium text-[var(--danger)]">Invalid HEX</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Reset */}
-            <div className="mt-8 pt-6 border-t border-white/10">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 py-2 text-xs font-medium text-[var(--ink-muted)] transition-colors hover:bg-white/5 hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                aria-label="Reset to original gradient values"
-              >
-                <span>↻</span> Reset to original
-              </button>
-            </div>
+                {/* Second color */}
+                <div className="mb-6">
+                  <label className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-[var(--ink)]">Second color</span>
+                    <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                      Color 2
+                    </span>
+                  </label>
+                  <div className="flex items-end gap-3">
+                    <input
+                      type="color"
+                      value={color2}
+                      onChange={(e) => handleColor2Change(e.target.value)}
+                      className="h-10 w-12 rounded-lg border-0 bg-transparent cursor-pointer"
+                      aria-label="Second color picker"
+                    />
+                    <input
+                      type="text"
+                      value={color2Input}
+                      onChange={(e) => handleColor2Change(e.target.value)}
+                      className="flex-1 rounded-lg border border-white/10 bg-[var(--surface-code)] px-3 py-2 text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40"
+                      placeholder="#8AA394"
+                      maxLength={7}
+                      aria-invalid={color2Invalid}
+                      aria-label="Second color HEX value"
+                    />
+                    {color2Invalid && (
+                      <span className="text-[10px] font-medium text-[var(--danger)]">Invalid HEX</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Gradient direction */}
+                <div className="mb-6">
+                  <label className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-[var(--ink)]">Gradient direction</span>
+                    <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--accent)]">
+                      Angle
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="0"
+                      max="360"
+                      step="1"
+                      value={angle}
+                      onChange={(e) => {
+                        const val = Number(e.target.value)
+                        setAngle(val)
+                        setAngleInput(String(val))
+                        setAngleInvalid(false)
+                      }}
+                      className="flex-1 accent-[var(--accent)] h-2 w-full rounded-lg bg-white/10 appearance-none cursor-pointer"
+                      aria-label="Gradient direction angle"
+                    />
+                    <div className="flex items-end gap-3">
+                      <input
+                        type="text"
+                        value={angleInput}
+                        onChange={(e) => handleAngleChange(e.target.value)}
+                        className="rounded-lg border border-white/10 bg-[var(--surface-code)] px-3 py-2 text-sm text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40 w-[80px]"
+                        placeholder="135"
+                        maxLength={3}
+                        aria-invalid={angleInvalid}
+                        aria-label="Gradient direction value"
+                      />
+                      <span className="text-[10px] font-medium text-[var(--ink-muted)]">deg</span>
+                      {angleInvalid && (
+                        <span className="text-[10px] font-medium text-[var(--danger)]">Invalid angle</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reset */}
+                <div className="mt-8 pt-6 border-t border-white/10">
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-transparent px-4 py-2 text-xs font-medium text-[var(--ink-muted)] transition-colors hover:bg-white/5 hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    aria-label="Reset to original gradient values"
+                  >
+                    <span>↻</span> Reset to original
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </section>
       </div>
